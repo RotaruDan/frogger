@@ -3,7 +3,7 @@ Frogger
 
 HTML5 (JavaScript) Frogger game. Complutense University of Madrid practice.
 Inspired by [Free Frogger](http://www.happyhopper.org/), source code based in [Alien Invasion](https://github.com/cykod/AlienInvasion).
-Fore more info about the desigh, check out [Frogger Design 2D](http://sgd.cs.colorado.edu/wiki/Frogger_Design_2D) and [Wikipedia](http://en.wikipedia.org/wiki/Frogger).
+Fore more info about the design, check out [Frogger Design 2D](http://sgd.cs.colorado.edu/wiki/Frogger_Design_2D) and [Wikipedia](http://en.wikipedia.org/wiki/Frogger).
 
 License
 ===
