@@ -6,6 +6,10 @@ var Game = new function() {
     this.canvas = document.getElementById(canvasElementId);
     this.width = this.canvas.width;
     this.height= this.canvas.height;
+    this.carsRow1 = Game.height - 96;
+    this.carsRow2 = Game.height - 144; 
+    this.carsRow3 = Game.height - 192; 
+    this.carsRow4 = Game.height - 240; 
 
     this.ctx = this.canvas.getContext && this.canvas.getContext('2d');
     if(!this.ctx) { return alert("Please upgrade your browser to play"); }
@@ -29,17 +33,17 @@ var Game = new function() {
   this.setupInput = function() {
     window.addEventListener('keydown',function(e) {
       if(KEY_CODES[event.keyCode]) {
-       Game.keys[KEY_CODES[event.keyCode]] = true;
-       e.preventDefault();
-     }
-   },false);
+        Game.keys[KEY_CODES[event.keyCode]] = true;
+        e.preventDefault();
+      }
+    },false);
 
     window.addEventListener('keyup',function(e) {
       if(KEY_CODES[event.keyCode]) {
-       Game.keys[KEY_CODES[event.keyCode]] = false; 
-       e.preventDefault();
-     }
-   },false);
+        Game.keys[KEY_CODES[event.keyCode]] = false; 
+        e.preventDefault();
+      }
+    },false);
   };
 
   // Game Loop
@@ -55,7 +59,7 @@ var Game = new function() {
     }
 
   };
-  
+
   // Change an active game board
   this.setBoard = function(num,board) { boards[num] = board; };
 
@@ -78,11 +82,11 @@ var SpriteSheet = new function() {
     var s = this.map[sprite];
     if(!frame) frame = 0;
     ctx.drawImage(this.image,
-     s.sx + frame * s.w, 
-     s.sy, 
-     s.w, s.h, 
-     Math.floor(x), Math.floor(y),
-     s.w, s.h);
+                  s.sx + frame * s.w, 
+                  s.sy, 
+                  s.w, s.h, 
+                  Math.floor(x), Math.floor(y),
+                  s.w, s.h);
   };
 
   this.drawRotated = function(ctx,sprite,x,y,frame,angle) {
@@ -94,14 +98,14 @@ var SpriteSheet = new function() {
     ctx.rotate(angle * TO_RADIANS);
 
     ctx.drawImage(this.image,
-      0 + frame * s.w, 
-      0, 
-      s.w, 
-      s.h,
-      -(s.w/2), 
-      -(s.h/2), 
-      s.w, 
-      s.h); 
+                  0 + frame * s.w, 
+                  0, 
+                  s.w, 
+                  s.h,
+                  -(s.w/2), 
+                  -(s.h/2), 
+                  s.w, 
+                  s.h); 
     ctx.restore(); 
   };
 
@@ -171,12 +175,12 @@ var GameBoard = function() {
 
   // Call the same method on all current objects 
   this.iterate = function(funcName) {
-   var args = Array.prototype.slice.call(arguments,1);
-   for(var i=0,len=this.objects.length;i<len;i++) {
-     var obj = this.objects[i];
-     obj[funcName].apply(obj,args);
-   }
- };
+    var args = Array.prototype.slice.call(arguments,1);
+    for(var i=0,len=this.objects.length;i<len;i++) {
+      var obj = this.objects[i];
+      obj[funcName].apply(obj,args);
+    }
+  };
 
   // Find the first object for which func is true
   this.detect = function(func) {
@@ -203,7 +207,7 @@ var GameBoard = function() {
   // bounding rects of two objects
   this.overlap = function(o1,o2) {
     return !((o1.y+o1.h-1<o2.y) || (o1.y>o2.y+o2.h-1) ||
-     (o1.x+o1.w-1<o2.x) || (o1.x>o2.x+o2.w-1));
+             (o1.x+o1.w-1<o2.x) || (o1.x>o2.x+o2.w-1));
   };
 
   // Find the first object that collides with obj
@@ -211,10 +215,10 @@ var GameBoard = function() {
   this.collide = function(obj,type) {
     return this.detect(function() {
       if(obj != this) {
-       var col = (!type || this.type & type) && board.overlap(obj,this);
-       return col ? this : false;
-     }
-   });
+        var col = (!type || this.type & type) && board.overlap(obj,this);
+        return col ? this : false;
+      }
+    });
   };
 
 
@@ -252,23 +256,34 @@ var Level = function(levelData,callback) {
   for(var i =0; i<levelData.length; i++) {
     this.levelData.push(Object.create(levelData[i]));
   }
-  this.t = 0;
+  this.elapsedTime = 0;
   this.callback = callback;
+  this.respawnTime = 0;
 };
 
 Level.prototype.step = function(dt) {
 
   // Update the current time offset
-  this.t += dt;
+  this.elapsedTime += dt;
 
-  if(this.t > 1){    
-    this.t = 0;
-    this.board.add(new Car(Game.height - 96));
-    this.board.add(new Car(Game.height - 144));
-    this.board.add(new Car(Game.height - 192));
-    this.board.add(new Car(Game.height - 240));
+  if(this.elapsedTime > this.respawnTime){    
+    this.elapsedTime = 0;
+    this.respawnTime = 1 + Math.random();
+    if(Math.random() < 0.95){
+      if(Math.random() < 0.85){
+        this.board.add(new Car('car1', -110, Game.carsRow1));
+      }
+      if(Math.random() < 0.85){
+        this.board.add(new Car('car2', 155, Game.carsRow2));
+      }
+      if(Math.random() < 0.45){
+        this.board.add(new Car('car3', -90, Game.carsRow3));
+      }
+      if(Math.random() < 0.85){
+        this.board.add(new Car('car4', 140, Game.carsRow4));
+      }
+    }
   }
-
   //   Start, End,  Gap, Type,   Override
   // [ 0,     4000, 500, 'step', { x: 100 } ]
   /*while((curShip = this.levelData[idx]) && (curShip[0] < this.t + 2000)) {
@@ -317,8 +332,8 @@ var TouchControls = function() {
     ctx.font = "bold " + (3*unitWidth/4) + "px arial";
 
     ctx.fillText(txt, 
-     x+blockWidth/2,
-     y+3*blockWidth/4);
+                 x+blockWidth/2,
+                 y+3*blockWidth/4);
   };
 
   this.draw = function(ctx) {

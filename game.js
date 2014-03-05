@@ -184,6 +184,8 @@ Frog.prototype.hit = function(target) {
 	if(target.type == OBJECT_TRUNK){
 		this.vx = target.vx;
 		this.y = target.y;
+	} else if (target.type == OBJECT_CAR){
+		loseGame();
 	}
 };
 
@@ -213,10 +215,10 @@ Trunk.prototype.hit = function(damage) {
 	}
 };
 
-var Car = function(posY) { 
-	this.setup('car1', { vx: 150, y: posY});
+var Car = function(type, velx, posY) { 
+	this.setup(type, { vx: velx, y: posY});
 
-	this.x = -this.w;
+	this.x = this.vx > 0 ? -this.w : Game.width;
 
 	this.step = function(dt) {
 		this.x += this.vx * dt;
@@ -224,8 +226,14 @@ var Car = function(posY) {
 		var collision = this.board.collide(this,OBJECT_FROG);
 		if(collision) {
 			collision.hit(this);
-		} else if(this.x > Game.width){
-			this.board.remove(this);
+		} else if(this.vx > 0){
+			if(this.x > Game.width){
+				this.board.remove(this);
+			}
+		} else {
+			if(this.x < -this.w){
+				this.board.remove(this);				
+			}
 		}
 	};
 };
