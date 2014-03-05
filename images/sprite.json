@@ -1,0 +1,11 @@
+{
+  frog: { sx: 0, sy: 0, w: 48, h: 48, frames: 1 },
+  bg: { sx: 433, sy: 0, w: 320, h: 480, frames: 1 },
+  car1: { sx: 143, sy: 0, w: 48, h: 48, frames: 1 },
+  car2: { sx: 191, sy: 0, w: 48, h: 48, frames: 1 },  
+  car3: { sx: 239, sy: 0, w: 96, h: 48, frames: 1 },
+  car4: { sx: 335, sy: 0, w: 48, h: 48, frames: 1 },
+  car5: { sx: 383, sy: 0, w: 48, h: 48, frames: 1 },
+  trunk: { sx: 287, sy: 383, w: 144, h: 48, frames: 1 },
+  death: { sx: 0, sy: 143, w: 48, h: 48, frames: 4 }
+};
