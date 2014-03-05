@@ -20,7 +20,8 @@ var enemies = {
 };
 
 var OBJECT_FROG = 1,
-	OBJECT_TRUNK = 2;
+	OBJECT_TRUNK = 2
+OBJECT_CAR = 3;
 
 var startGame = function() {
 	Game.setBoard(0,new Background());
@@ -66,57 +67,75 @@ Background.prototype = new Sprite();
 
 var Frog = function() { 
 	this.setup('frog', 
-			   {vx: 0, vy: 0, angle: 0, 
-				elapsedAnimatingTime: 0, animating: false, 
-				steppingTime: 0, timeToStep: 0.2, 
+			   {elapsedAnimatingTime: 0, animating: false, 
+				steppingTime: 0, timeToStep: 0.25, 
+				vx: 0, vy: 0, angle: 0, 
 				frames: 3});
 
-	this.y = Game.height - this.h;
-	this.x = Game.width/2 - this.w / 2;
 	this.animatingTime = this.timeToStep/(this.frames + 1);
-	this.maxVel = this.h/this.timeToStep; 
+	this.x = Game.width/2 - this.w / 2;
+	this.maxVel = 48/this.timeToStep; 
+	this.y = Game.height - this.h;
+	this.finalX = this.finalY = 0;
 	this.frame = this.frames - 1;
 
 	this.step = function(dt) {
 		if(!this.animating){
-			if(Game.keys['left']) { 
-				this.steppingTime = 0; 
-				this.vx = -this.maxVel; 
-				this.animating = true; 
-				this.angle = -90;
-			} else if(Game.keys['right']) { 
-				this.steppingTime = 0; 
-				this.vx = this.maxVel; 
-				this.animating = true; 
-				this.angle = 90;
-			} else if(Game.keys['up']) { 
+			if(Game.keys['up']) { 
 				this.steppingTime = 0; 
 				this.vy = -this.maxVel; 
 				this.animating = true; 
 				this.angle = 0;
+				this.finalX = this.x;
+				this.finalY = this.y - this.h;
+				if(this.finalY > Game.height - this.h) {
+					this.finalY = Game.height - this.h;
+				} else if(this.finalY < 0){ 
+					this.finalY = 0; 
+				}
 			} else if(Game.keys['down']) { 
 				this.steppingTime = 0; 
 				this.vy = this.maxVel; 
 				this.animating = true;
 				this.angle = 180;
-			}
+				this.finalX = this.x;
+				this.finalY = this.y + this.h;
+				if(this.finalY > Game.height - this.h) {
+					this.finalY = Game.height - this.h;
+				} else if(this.finalY < 0){ 
+					this.finalY = 0; 
+				}
+			} else if(Game.keys['left']) { 
+				this.steppingTime = 0; 
+				this.vx = -this.maxVel; 
+				this.animating = true; 
+				this.angle = -90;
+				this.finalY = this.y;
+				this.finalX = this.x - this.w;
+				if(this.finalX < 0) { 
+					this.finalX = 0; 
+				} else if(this.finalX > Game.width - this.w) { 
+					this.finalX = Game.width - this.w;
+				}
+			} else if(Game.keys['right']) { 
+				this.steppingTime = 0; 
+				this.vx = this.maxVel; 
+				this.animating = true; 
+				this.angle = 90;
+				this.finalY = this.y;
+				this.finalX = this.x + this.w;
+				if(this.finalX < 0) { 
+					this.finalX = 0; 
+				} else if(this.finalX > Game.width - this.w) { 
+					this.finalX = Game.width - this.w;
+				}
+			} 
 		}
 
 		if(this.animating){
-			// Take care of the time that the frog will use to step
-			this.steppingTime += dt;
-			if(this.steppingTime >= this.timeToStep){
-				this.elapsedAnimatingTime = 0;
-				this.animating = false;
-				this.vx = this.vy = 0;
-			}
-
 			// Update the position
-			if(this.vx != 0){
-				this.x += this.vx * dt;
-			} else if(this.vy != 0){
-				this.y += this.vy * dt;
-			}
+			this.x += this.vx * dt;
+			this.y += this.vy * dt;
 
 			// Take care of the game bounds
 			if(this.x < 0) { 
@@ -124,7 +143,7 @@ var Frog = function() {
 			} else if(this.x > Game.width - this.w) { 
 				this.x = Game.width - this.w;
 			}
-			if(this.y + this.h > Game.height) {
+			if(this.y > Game.height - this.h) {
 				this.y = Game.height - this.h;
 			} else if(this.y < 0){ 
 				this.y = 0; 
@@ -135,6 +154,16 @@ var Frog = function() {
 			if(this.elapsedAnimatingTime >= this.animatingTime){
 				this.frame = (this.frame+1)%this.frames;
 				this.elapsedAnimatingTime = 0;
+			}
+
+			// Take care of the time that the frog will use to step
+			this.steppingTime += dt;
+			if(this.steppingTime >= this.timeToStep){
+				this.elapsedAnimatingTime = 0;
+				this.animating = false;
+				this.vx = this.vy = 0;
+				this.x = this.finalX;
+				this.y = this.finalY;
 			}
 		}
 	};
@@ -177,6 +206,32 @@ var Trunk = function(posY) {
 
 Trunk.prototype = new Sprite();
 Trunk.prototype.type = OBJECT_TRUNK;
+
+Trunk.prototype.hit = function(damage) {
+	if(this.board.remove(this)) {
+		loseGame();
+	}
+};
+
+var Car = function(posY) { 
+	this.setup('car1', { vx: 150, y: posY});
+
+	this.x = -this.w;
+
+	this.step = function(dt) {
+		this.x += this.vx * dt;
+
+		var collision = this.board.collide(this,OBJECT_FROG);
+		if(collision) {
+			collision.hit(this);
+		} else if(this.x > Game.width){
+			this.board.remove(this);
+		}
+	};
+};
+
+Car.prototype = new Sprite();
+Car.prototype.type = OBJECT_CAR;
 
 Trunk.prototype.hit = function(damage) {
 	if(this.board.remove(this)) {

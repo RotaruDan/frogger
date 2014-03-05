@@ -263,7 +263,10 @@ Level.prototype.step = function(dt) {
 
   if(this.t > 1){    
     this.t = 0;
-    //this.board.add(new Trunk(200));
+    this.board.add(new Car(Game.height - 96));
+    this.board.add(new Car(Game.height - 144));
+    this.board.add(new Car(Game.height - 192));
+    this.board.add(new Car(Game.height - 240));
   }
 
   //   Start, End,  Gap, Type,   Override
