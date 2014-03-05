@@ -68,13 +68,14 @@ var Frog = function() {
 	this.setup('frog', 
 			   {vx: 0, vy: 0, angle: 0, 
 				elapsedAnimatingTime: 0, animating: false, 
-				steppingTime: 0, timeToStep: 0.1, 
-				waitingTime: 0, timeWaiting: 0.05});
+				steppingTime: 0, timeToStep: 0.2, 
+				frames: 3});
 
 	this.y = Game.height - this.h;
 	this.x = Game.width/2 - this.w / 2;
-	this.animatingTime = this.timeToStep/4;
+	this.animatingTime = this.timeToStep/(this.frames + 1);
 	this.maxVel = this.h/this.timeToStep; 
+	this.frame = this.frames - 1;
 
 	this.step = function(dt) {
 		if(!this.animating){
@@ -83,20 +84,17 @@ var Frog = function() {
 				this.vx = -this.maxVel; 
 				this.animating = true; 
 				this.angle = -90;
-			}
-			else if(Game.keys['right']) { 
+			} else if(Game.keys['right']) { 
 				this.steppingTime = 0; 
 				this.vx = this.maxVel; 
 				this.animating = true; 
 				this.angle = 90;
-			}
-			else if(Game.keys['up']) { 
+			} else if(Game.keys['up']) { 
 				this.steppingTime = 0; 
 				this.vy = -this.maxVel; 
 				this.animating = true; 
 				this.angle = 0;
-			}
-			else if(Game.keys['down']) { 
+			} else if(Game.keys['down']) { 
 				this.steppingTime = 0; 
 				this.vy = this.maxVel; 
 				this.animating = true;
@@ -104,28 +102,23 @@ var Frog = function() {
 			}
 		}
 
-		if(this.waitingTime < this.timeWaiting){
-			this.waitingTime += dt;
-			this.steppingTime = 0;
-			console.log("waiting");
-			return;
-		} 
-
 		if(this.animating){
+			// Take care of the time that the frog will use to step
 			this.steppingTime += dt;
 			if(this.steppingTime >= this.timeToStep){
-				console.log("stepping");
-				this.waitingTime = 0;
+				this.elapsedAnimatingTime = 0;
 				this.animating = false;
 				this.vx = this.vy = 0;
 			}
 
+			// Update the position
 			if(this.vx != 0){
 				this.x += this.vx * dt;
 			} else if(this.vy != 0){
 				this.y += this.vy * dt;
 			}
 
+			// Take care of the game bounds
 			if(this.x < 0) { 
 				this.x = 0; 
 			} else if(this.x > Game.width - this.w) { 
@@ -136,12 +129,12 @@ var Frog = function() {
 			} else if(this.y < 0){ 
 				this.y = 0; 
 			}
-			if(this.animating){
-				this.elapsedAnimatingTime += dt;
-				if(this.elapsedAnimatingTime > this.animatingTime){
-					this.frame = (1+this.frame)%3;
-					this.elapsedAnimatingTime = 0;
-				}
+
+			// Take care of the frame-based animation
+			this.elapsedAnimatingTime += dt;
+			if(this.elapsedAnimatingTime >= this.animatingTime){
+				this.frame = (this.frame+1)%this.frames;
+				this.elapsedAnimatingTime = 0;
 			}
 		}
 	};
