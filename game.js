@@ -20,8 +20,10 @@ var enemies = {
 };
 
 var OBJECT_FROG = 1,
-	OBJECT_TRUNK = 2
-OBJECT_CAR = 3;
+	OBJECT_TRUNK = 2,
+	OBJECT_CAR = 3,
+	OBJECT_WATER = 4,
+	OBJECT_OTHER = -1;
 
 var startGame = function() {
 	Game.setBoard(0,new Background());
@@ -30,18 +32,12 @@ var startGame = function() {
 									playGame));
 };
 
-var level1 = [
-	// Start,   End, Gap,  Type,   Override
-	[ 0,  25000, 400, 'cars', { x: 100 }]
-];
-
-
-
 var playGame = function() {
 	console.log("playGame");
 	var board = new GameBoard();
+	board.add(new Level());
 	board.add(new Frog());
-	board.add(new Level(level1,winGame));
+	board.add(new Water());
 	Game.setBoard(1,board);
 };
 
@@ -74,10 +70,11 @@ var Frog = function() {
 
 	this.animatingTime = this.timeToStep/(this.frames + 1);
 	this.x = Game.width/2 - this.w / 2;
-	this.maxVel = 48/this.timeToStep; 
-	this.y = Game.height - this.h;
+	this.maxVel = this.h/this.timeToStep; 
+	this.y = Game.height/2 - this.h;
 	this.finalX = this.finalY = 0;
 	this.frame = this.frames - 1;
+	this.additionalXvelocity = 0;
 
 	this.step = function(dt) {
 		if(!this.animating){
@@ -107,7 +104,7 @@ var Frog = function() {
 				}
 			} else if(Game.keys['left']) { 
 				this.steppingTime = 0; 
-				this.vx = -this.maxVel; 
+				this.vx = -this.maxVel + this.additionalXvelocity; 
 				this.animating = true; 
 				this.angle = -90;
 				this.finalY = this.y;
@@ -119,7 +116,7 @@ var Frog = function() {
 				}
 			} else if(Game.keys['right']) { 
 				this.steppingTime = 0; 
-				this.vx = this.maxVel; 
+				this.vx = this.maxVel + this.additionalXvelocity; 
 				this.animating = true; 
 				this.angle = 90;
 				this.finalY = this.y;
@@ -175,22 +172,69 @@ var Frog = function() {
 			SpriteSheet.drawRotated(ctx,this.sprite,this.x,this.y,this.frame, this.angle);
 		}
 	}
+
+	this.startDying = function(){
+		this.board.add(new DeadFrog(this.x, this.y));
+		this.board.remove(this);		
+	}
 };
 
 Frog.prototype = new Sprite();
 Frog.prototype.type = OBJECT_FROG;
 
 Frog.prototype.hit = function(target) {
+	this.additionalXvelocity = 0;
 	if(target.type == OBJECT_TRUNK){
-		this.vx = target.vx;
-		this.y = target.y;
+		console.log("over a trunk, x: " + target.x + ", y: " + target.y + ", target vx: " + target.vx);
+		this.additionalXvelocity = target.vx;
+
 	} else if (target.type == OBJECT_CAR){
-		loseGame();
-	}
+		this.startDying();
+	} else if(target.type == OBJECT_WATER){
+		
+		var collision = this.board.collide(this,OBJECT_TRUNK);
+		if(!collision) {
+			console.log("hitting water...");
+			this.startDying();
+		} 
+		//this.startDying();
+
+	}		
 };
 
-var Trunk = function(posY) { 
-	this.setup('trunk', { vx: 150, y: posY});
+var DeadFrog = function(posX, posY) { 
+	this.setup('death', {x: posX, y: posY, elapsedAnimatingTime: 0, animationTime: 1, frames: 4});
+	this.animatingTime = this.animationTime/this.frames;
+
+	this.step = function(dt) {
+		console.log("animatingTime: " + this.animatingTime +
+					", elapsedAnimatingTime: " + this.elapsedAnimatingTime +
+					", frame: " + this.frame + 
+					", sprite: " + this.sprite);
+		// Take care of the frame-based animation
+		this.elapsedAnimatingTime += dt;
+		if(this.elapsedAnimatingTime >= this.animatingTime){
+			this.frame = (this.frame+1);
+			this.elapsedAnimatingTime = 0;
+			if(this.frame >= this.frames){
+				loseGame();
+			}
+		}
+	};
+	/*this.draw = function(ctx){
+		console.log("drawing dead frog...");
+		SpriteSheet.draw(ctx,this.sprite,this.x,this.y,this.frame);		
+	}*/
+};
+
+DeadFrog.prototype = new Sprite();
+DeadFrog.prototype.type = OBJECT_OTHER;
+
+DeadFrog.prototype.hit = function(damage) {
+};
+
+var Trunk = function(velX, posY) { 
+	this.setup('trunk', { vx: velX, y: posY});
 
 	this.x = -this.w;
 
@@ -209,11 +253,26 @@ var Trunk = function(posY) {
 Trunk.prototype = new Sprite();
 Trunk.prototype.type = OBJECT_TRUNK;
 
-Trunk.prototype.hit = function(damage) {
-	if(this.board.remove(this)) {
-		loseGame();
-	}
+Trunk.prototype.hit = function(damage) { };
+
+var Water = function() { 
+	this.x = 0;
+	this.y = 48;
+	this.w = Game.width;
+	this.h = 48*3;
+	this.step = function(dt) {
+		var collision = this.board.collide(this,OBJECT_FROG);
+		if(collision) {
+			collision.hit(this);
+		}
+	};
+	this.draw = function(ctx){ }
 };
+
+Water.prototype = new Sprite();
+Water.prototype.type = OBJECT_WATER;
+
+Water.prototype.hit = function(damage) { };
 
 var Car = function(type, velx, posY) { 
 	this.setup(type, { vx: velx, y: posY});

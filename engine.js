@@ -1,225 +1,228 @@
 var Game = new function() {                                                                  
-  var boards = [];
+	var boards = [];
 
-  // Game Initialization
-  this.initialize = function(canvasElementId,sprite_data,callback) {
-    this.canvas = document.getElementById(canvasElementId);
-    this.width = this.canvas.width;
-    this.height= this.canvas.height;
-    this.carsRow1 = Game.height - 96;
-    this.carsRow2 = Game.height - 144; 
-    this.carsRow3 = Game.height - 192; 
-    this.carsRow4 = Game.height - 240; 
+	// Game Initialization
+	this.initialize = function(canvasElementId,sprite_data,callback) {
+		this.canvas = document.getElementById(canvasElementId);
+		this.width = this.canvas.width;
+		this.height= this.canvas.height;
+		this.carsRow1 = Game.height - 96;
+		this.carsRow2 = Game.height - 144; 
+		this.carsRow3 = Game.height - 192; 
+		this.carsRow4 = Game.height - 240; 
+		this.trunksRow1 = 48*3; 
+		this.trunksRow2 = 48*2; 
+		this.trunksRow3 = 48; 
 
-    this.ctx = this.canvas.getContext && this.canvas.getContext('2d');
-    if(!this.ctx) { return alert("Please upgrade your browser to play"); }
+		this.ctx = this.canvas.getContext && this.canvas.getContext('2d');
+		if(!this.ctx) { return alert("Please upgrade your browser to play"); }
 
-    this.canvasMultiplier = 1;
-    this.playerOffset = 10;
+		this.canvasMultiplier = 1;
+		this.playerOffset = 10;
 
-    this.setupInput();
+		this.setupInput();
 
-    this.setBoard(4,new TouchControls());
+		this.setBoard(4,new TouchControls());
 
-    this.loop(); 
+		this.loop(); 
 
-    SpriteSheet.load(sprite_data,callback);
-  };
+		SpriteSheet.load(sprite_data,callback);
+	};
 
-  // Handle Input
-  var KEY_CODES = { 37:'left', 38 :'up', 39:'right', 40:'down', 32 :'space' };
-  this.keys = {};
+	// Handle Input
+	var KEY_CODES = { 37:'left', 38 :'up', 39:'right', 40:'down', 32 :'space' };
+	this.keys = {};
 
-  this.setupInput = function() {
-    window.addEventListener('keydown',function(e) {
-      if(KEY_CODES[event.keyCode]) {
-        Game.keys[KEY_CODES[event.keyCode]] = true;
-        e.preventDefault();
-      }
-    },false);
+	this.setupInput = function() {
+		window.addEventListener('keydown',function(e) {
+			if(KEY_CODES[event.keyCode]) {
+				Game.keys[KEY_CODES[event.keyCode]] = true;
+				e.preventDefault();
+			}
+		},false);
 
-    window.addEventListener('keyup',function(e) {
-      if(KEY_CODES[event.keyCode]) {
-        Game.keys[KEY_CODES[event.keyCode]] = false; 
-        e.preventDefault();
-      }
-    },false);
-  };
+		window.addEventListener('keyup',function(e) {
+			if(KEY_CODES[event.keyCode]) {
+				Game.keys[KEY_CODES[event.keyCode]] = false; 
+				e.preventDefault();
+			}
+		},false);
+	};
 
-  // Game Loop
-  this.loop = function() { 
-    var dt = 30 / 1000;
-    setTimeout(Game.loop,30);
+	// Game Loop
+	this.loop = function() { 
+		var dt = 30 / 1000;
+		setTimeout(Game.loop,30);
 
-    for(var i=0,len = boards.length;i<len;i++) {
-      if(boards[i]) { 
-        boards[i].step(dt);
-        boards[i].draw(Game.ctx);
-      }
-    }
+		for(var i=0,len = boards.length;i<len;i++) {
+			if(boards[i]) { 
+				boards[i].step(dt);
+				boards[i].draw(Game.ctx);
+			}
+		}
 
-  };
+	};
 
-  // Change an active game board
-  this.setBoard = function(num,board) { boards[num] = board; };
+	// Change an active game board
+	this.setBoard = function(num,board) { boards[num] = board; };
 
-  return this;
+	return this;
 };
 
 
 var SpriteSheet = new function() {
-  this.map = { }; 
-  var TO_RADIANS = Math.PI/180; 
+	this.map = { }; 
+	var TO_RADIANS = Math.PI/180; 
 
-  this.load = function(spriteData,callback) { 
-    this.map = spriteData;
-    this.image = new Image();
-    this.image.onload = callback;
-    this.image.src = 'images/spritesFrogger.png';
-  };
+	this.load = function(spriteData,callback) { 
+		this.map = spriteData;
+		this.image = new Image();
+		this.image.onload = callback;
+		this.image.src = 'images/spritesFrogger.png';
+	};
 
-  this.draw = function(ctx,sprite,x,y,frame) {
-    var s = this.map[sprite];
-    if(!frame) frame = 0;
-    ctx.drawImage(this.image,
-                  s.sx + frame * s.w, 
-                  s.sy, 
-                  s.w, s.h, 
-                  Math.floor(x), Math.floor(y),
-                  s.w, s.h);
-  };
+	this.draw = function(ctx,sprite,x,y,frame) {
+		var s = this.map[sprite];
+		if(!frame) frame = 0;
+		ctx.drawImage(this.image,
+					  s.sx + frame * s.w, 
+					  s.sy, 
+					  s.w, s.h, 
+					  Math.floor(x), Math.floor(y),
+					  s.w, s.h);
+	};
 
-  this.drawRotated = function(ctx,sprite,x,y,frame,angle) {
-    var s = this.map[sprite];
-    if(!frame) frame = 0;
+	this.drawRotated = function(ctx,sprite,x,y,frame,angle) {
+		var s = this.map[sprite];
+		if(!frame) frame = 0;
 
-    ctx.save(); 
-    ctx.translate(x + s.w/2, y + s.h/2);
-    ctx.rotate(angle * TO_RADIANS);
+		ctx.save(); 
+		ctx.translate(x + s.w/2, y + s.h/2);
+		ctx.rotate(angle * TO_RADIANS);
 
-    ctx.drawImage(this.image,
-                  0 + frame * s.w, 
-                  0, 
-                  s.w, 
-                  s.h,
-                  -(s.w/2), 
-                  -(s.h/2), 
-                  s.w, 
-                  s.h); 
-    ctx.restore(); 
-  };
+		ctx.drawImage(this.image,
+					  0 + frame * s.w, 
+					  0, 
+					  s.w, 
+					  s.h,
+					  -(s.w/2), 
+					  -(s.h/2), 
+					  s.w, 
+					  s.h); 
+		ctx.restore(); 
+	};
 
-  return this;
+	return this;
 };
 
 var TitleScreen = function TitleScreen(title,subtitle,callback) {
-  var up = false;
-  this.step = function(dt) {
-    if(!Game.keys['space']) up = true;
-    if(up && Game.keys['space'] && callback) callback();
-  };
+	var up = false;
+	this.step = function(dt) {
+		if(!Game.keys['space']) up = true;
+		if(up && Game.keys['space'] && callback) callback();
+	};
 
-  this.draw = function(ctx) {
-    ctx.fillStyle = "#FFFFFF";
-    ctx.textAlign = "center";
+	this.draw = function(ctx) {
+		ctx.fillStyle = "#FFFFFF";
+		ctx.textAlign = "center";
 
-    ctx.font = "bold 40px bangers";
-    ctx.fillText(title,Game.width/2,Game.height/2);
+		ctx.font = "bold 40px bangers";
+		ctx.fillText(title,Game.width/2,Game.height/2);
 
-    ctx.font = "bold 20px bangers";
-    ctx.fillText(subtitle,Game.width/2,Game.height/2 + 40);
-  };
+		ctx.font = "bold 20px bangers";
+		ctx.fillText(subtitle,Game.width/2,Game.height/2 + 40);
+	};
 
 };
 
 
 var GameBoard = function() {
-  var board = this;
+	var board = this;
 
-  // The current list of objects
-  this.objects = [];
-  this.cnt = {};
+	// The current list of objects
+	this.objects = [];
+	this.cnt = {};
 
-  // Add a new object to the object list
-  this.add = function(obj) { 
-    obj.board=this; 
-    this.objects.unshift(obj); 
-    this.cnt[obj.type] = (this.cnt[obj.type] || 0) + 1;
-    return obj; 
-  };
+	// Add a new object to the object list
+	this.add = function(obj) { 
+		obj.board=this; 
+		this.objects.unshift(obj); 
+		this.cnt[obj.type] = (this.cnt[obj.type] || 0) + 1;
+		return obj; 
+	};
 
-  // Mark an object for removal
-  this.remove = function(obj) { 
-    var idx = this.removed.indexOf(obj);
-    if(idx == -1) {
-      this.removed.push(obj); 
-      return true;
-    } else {
-      return false;
-    }
-  };
+	// Mark an object for removal
+	this.remove = function(obj) { 
+		var idx = this.removed.indexOf(obj);
+		if(idx == -1) {
+			this.removed.push(obj); 
+			return true;
+		} else {
+			return false;
+		}
+	};
 
-  // Reset the list of removed objects
-  this.resetRemoved = function() { this.removed = []; };
+	// Reset the list of removed objects
+	this.resetRemoved = function() { this.removed = []; };
 
-  // Removed an objects marked for removal from the list
-  this.finalizeRemoved = function() {
-    for(var i=0,len=this.removed.length;i<len;i++) {
-      var idx = this.objects.indexOf(this.removed[i]);
-      if(idx != -1) {
-        this.cnt[this.removed[i].type]--;
-        this.objects.splice(idx,1);
-      }
-    }
-  };
+	// Removed an objects marked for removal from the list
+	this.finalizeRemoved = function() {
+		for(var i=0,len=this.removed.length;i<len;i++) {
+			var idx = this.objects.indexOf(this.removed[i]);
+			if(idx != -1) {
+				this.cnt[this.removed[i].type]--;
+				this.objects.splice(idx,1);
+			}
+		}
+	};
 
-  // Call the same method on all current objects 
-  this.iterate = function(funcName) {
-    var args = Array.prototype.slice.call(arguments,1);
-    for(var i=0,len=this.objects.length;i<len;i++) {
-      var obj = this.objects[i];
-      obj[funcName].apply(obj,args);
-    }
-  };
+	// Call the same method on all current objects 
+	this.iterate = function(funcName) {
+		var args = Array.prototype.slice.call(arguments,1);
+		for(var i=0,len=this.objects.length;i<len;i++) {
+			var obj = this.objects[i];
+			obj[funcName].apply(obj,args);
+		}
+	};
 
-  // Find the first object for which func is true
-  this.detect = function(func) {
-    for(var i = 0,val=null, len=this.objects.length; i < len; i++) {
-      if(func.call(this.objects[i])) return this.objects[i];
-    }
-    return false;
-  };
+	// Find the first object for which func is true
+	this.detect = function(func) {
+		for(var i = 0,val=null, len=this.objects.length; i < len; i++) {
+			if(func.call(this.objects[i])) return this.objects[i];
+		}
+		return false;
+	};
 
-  // Call step on all objects and them delete
-  // any object that have been marked for removal
-  this.step = function(dt) { 
-    this.resetRemoved();
-    this.iterate('step',dt);
-    this.finalizeRemoved();
-  };
+	// Call step on all objects and them delete
+	// any object that have been marked for removal
+	this.step = function(dt) { 
+		this.resetRemoved();
+		this.iterate('step',dt);
+		this.finalizeRemoved();
+	};
 
-  // Draw all the objects
-  this.draw= function(ctx) {
-    this.iterate('draw',ctx);
-  };
+	// Draw all the objects
+	this.draw= function(ctx) {
+		this.iterate('draw',ctx);
+	};
 
-  // Check for a collision between the 
-  // bounding rects of two objects
-  this.overlap = function(o1,o2) {
-    return !((o1.y+o1.h-1<o2.y) || (o1.y>o2.y+o2.h-1) ||
-             (o1.x+o1.w-1<o2.x) || (o1.x>o2.x+o2.w-1));
-  };
+	// Check for a collision between the 
+	// bounding rects of two objects
+	this.overlap = function(o1,o2) {
+		return !((o1.y+o1.h-1<o2.y) || (o1.y>o2.y+o2.h-1) ||
+				 (o1.x+o1.w-1<o2.x) || (o1.x>o2.x+o2.w-1));
+	};
 
-  // Find the first object that collides with obj
-  // match against an optional type
-  this.collide = function(obj,type) {
-    return this.detect(function() {
-      if(obj != this) {
-        var col = (!type || this.type & type) && board.overlap(obj,this);
-        return col ? this : false;
-      }
-    });
-  };
+	// Find the first object that collides with obj
+	// match against an optional type
+	this.collide = function(obj,type) {
+		return this.detect(function() {
+			if(obj != this) {
+				var col = (!type || this.type & type) && board.overlap(obj,this);
+				return col ? this : false;
+			}
+		});
+	};
 
 
 };
@@ -227,66 +230,82 @@ var GameBoard = function() {
 var Sprite = function() { };
 
 Sprite.prototype.setup = function(sprite,props) {
-  this.sprite = sprite;
-  this.merge(props);
-  this.frame = this.frame || 0;
-  this.w =  SpriteSheet.map[sprite].w;
-  this.h =  SpriteSheet.map[sprite].h;
+	this.sprite = sprite;
+	this.merge(props);
+	this.frame = this.frame || 0;
+	this.w =  SpriteSheet.map[sprite].w;
+	this.h =  SpriteSheet.map[sprite].h;
 };
 
 Sprite.prototype.merge = function(props) {
-  if(props) {
-    for (var prop in props) {
-      this[prop] = props[prop];
-    }
-  }
+	if(props) {
+		for (var prop in props) {
+			this[prop] = props[prop];
+		}
+	}
 };
 
 Sprite.prototype.draw = function(ctx) {
-  SpriteSheet.draw(ctx,this.sprite,this.x,this.y,this.frame);
+	SpriteSheet.draw(ctx,this.sprite,this.x,this.y,this.frame);
 };
 
 Sprite.prototype.hit = function(damage) {
-  this.board.remove(this);
+	this.board.remove(this);
 };
 
 
-var Level = function(levelData,callback) {
-  this.levelData = [];
-  for(var i =0; i<levelData.length; i++) {
-    this.levelData.push(Object.create(levelData[i]));
-  }
-  this.elapsedTime = 0;
-  this.callback = callback;
-  this.respawnTime = 0;
+var Level = function() {
+	this.elapsedTime = 0;
+	this.elapsedTrunkTime = 0;
+	this.respawnTime = 0;
+	this.respawnTrunkTime = 0;
 };
 
 Level.prototype.step = function(dt) {
 
-  // Update the current time offset
-  this.elapsedTime += dt;
+	// Update the current time offset
+	this.elapsedTime += dt;
 
-  if(this.elapsedTime > this.respawnTime){    
-    this.elapsedTime = 0;
-    this.respawnTime = 1 + Math.random();
-    if(Math.random() < 0.95){
-      if(Math.random() < 0.85){
-        this.board.add(new Car('car1', -110, Game.carsRow1));
-      }
-      if(Math.random() < 0.85){
-        this.board.add(new Car('car2', 155, Game.carsRow2));
-      }
-      if(Math.random() < 0.45){
-        this.board.add(new Car('car3', -90, Game.carsRow3));
-      }
-      if(Math.random() < 0.85){
-        this.board.add(new Car('car4', 140, Game.carsRow4));
-      }
-    }
-  }
-  //   Start, End,  Gap, Type,   Override
-  // [ 0,     4000, 500, 'step', { x: 100 } ]
-  /*while((curShip = this.levelData[idx]) && (curShip[0] < this.t + 2000)) {
+	if(this.elapsedTime > this.respawnTime){    
+		this.elapsedTime = 0;
+		this.respawnTime = 1 + Math.random();
+		if(Math.random() < 0.95){
+			if(Math.random() < 0.85){
+				this.board.add(new Car('car1', -110, Game.carsRow1));
+			}
+			if(Math.random() < 0.85){
+				this.board.add(new Car('car2', 155, Game.carsRow2));
+			}
+			if(Math.random() < 0.45){
+				this.board.add(new Car('car3', -90, Game.carsRow3));
+			}
+			if(Math.random() < 0.85){
+				this.board.add(new Car('car4', 140, Game.carsRow4));
+			}			
+		}
+	}
+	
+	// Update the current time offset
+	this.elapsedTrunkTime += dt;
+
+	if(this.elapsedTrunkTime > this.respawnTrunkTime){    
+		this.elapsedTrunkTime = 0;
+		this.respawnTrunkTime = 2 + Math.random();
+		if(Math.random() < 0.95){
+			if(Math.random() < 0.85){
+				this.board.add(new Trunk(100, Game.trunksRow1));
+			}
+			if(Math.random() < 0.85){
+				this.board.add(new Trunk(90, Game.trunksRow2));
+			}
+			if(Math.random() < 0.85){
+				this.board.add(new Trunk(120, Game.trunksRow3));
+			}			
+		}
+	}
+	//   Start, End,  Gap, Type,   Override
+	// [ 0,     4000, 500, 'step', { x: 100 } ]
+	/*while((curShip = this.levelData[idx]) && (curShip[0] < this.t + 2000)) {
     // Check if we've passed the end time 
     if(this.t > curShip[1]) {
       remove.push(curShip);
@@ -304,10 +323,10 @@ Level.prototype.step = function(dt) {
     idx++;
   }*/
 
-  // Remove any objects from the levelData that have passed
+	// Remove any objects from the levelData that have passed
 
-  // If there are no more enemies on the board or in 
-  // levelData, this level is done
+	// If there are no more enemies on the board or in 
+	// levelData, this level is done
 
 
 };
@@ -317,72 +336,72 @@ Level.prototype.draw = function(ctx) { };
 
 var TouchControls = function() {
 
-  var gutterWidth = 10;
-  var unitWidth = Game.width/5;
-  var blockWidth = unitWidth-gutterWidth;
+	var gutterWidth = 10;
+	var unitWidth = Game.width/5;
+	var blockWidth = unitWidth-gutterWidth;
 
-  this.drawSquare = function(ctx,x,y,txt,on) {
-    ctx.globalAlpha = on ? 0.9 : 0.6;
-    ctx.fillStyle =  "#CCC";
-    ctx.fillRect(x,y,blockWidth,blockWidth);
+	this.drawSquare = function(ctx,x,y,txt,on) {
+		ctx.globalAlpha = on ? 0.9 : 0.6;
+		ctx.fillStyle =  "#CCC";
+		ctx.fillRect(x,y,blockWidth,blockWidth);
 
-    ctx.fillStyle = "#FFF";
-    ctx.textAlign = "center";
-    ctx.globalAlpha = 1.0;
-    ctx.font = "bold " + (3*unitWidth/4) + "px arial";
+		ctx.fillStyle = "#FFF";
+		ctx.textAlign = "center";
+		ctx.globalAlpha = 1.0;
+		ctx.font = "bold " + (3*unitWidth/4) + "px arial";
 
-    ctx.fillText(txt, 
-                 x+blockWidth/2,
-                 y+3*blockWidth/4);
-  };
+		ctx.fillText(txt, 
+					 x+blockWidth/2,
+					 y+3*blockWidth/4);
+	};
 
-  this.draw = function(ctx) {
-    ctx.save();
+	this.draw = function(ctx) {
+		ctx.save();
 
-    var yLoc = Game.height - unitWidth;
-    this.drawSquare(ctx,gutterWidth,yLoc,"\u25C0", Game.keys['left']);
-    this.drawSquare(ctx,2*unitWidth + gutterWidth,yLoc,"\u25B6", Game.keys['right']);
-    this.drawSquare(ctx,unitWidth + gutterWidth,yLoc - unitWidth,"\u25B2", Game.keys['up']);
-    this.drawSquare(ctx,unitWidth + gutterWidth,yLoc ,"\u25BC", Game.keys['down']);
+		var yLoc = Game.height - unitWidth;
+		this.drawSquare(ctx,gutterWidth,yLoc,"\u25C0", Game.keys['left']);
+		this.drawSquare(ctx,2*unitWidth + gutterWidth,yLoc,"\u25B6", Game.keys['right']);
+		this.drawSquare(ctx,unitWidth + gutterWidth,yLoc - unitWidth,"\u25B2", Game.keys['up']);
+		this.drawSquare(ctx,unitWidth + gutterWidth,yLoc ,"\u25BC", Game.keys['down']);
 
-    ctx.restore();
-  };
+		ctx.restore();
+	};
 
-  this.step = function(dt) { };
+	this.step = function(dt) { };
 
-  this.trackTouch = function(e) {
-    var touch, x;
+	this.trackTouch = function(e) {
+		var touch, x;
 
-    e.preventDefault();
-    Game.keys['left'] = false;
-    Game.keys['right'] = false;
-    for(var i=0;i<e.targetTouches.length;i++) {
-      touch = e.targetTouches[i];
-      x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
-      if(x < unitWidth) {
-        Game.keys['left'] = true;
-      } 
-      if(x > unitWidth && x < 2*unitWidth) {
-        Game.keys['right'] = true;
-      } 
-    }
+		e.preventDefault();
+		Game.keys['left'] = false;
+		Game.keys['right'] = false;
+		for(var i=0;i<e.targetTouches.length;i++) {
+			touch = e.targetTouches[i];
+			x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
+			if(x < unitWidth) {
+				Game.keys['left'] = true;
+			} 
+			if(x > unitWidth && x < 2*unitWidth) {
+				Game.keys['right'] = true;
+			} 
+		}
 
-    if(e.type == 'touchstart' || e.type == 'touchend') {
-      for(i=0;i<e.changedTouches.length;i++) {
-        touch = e.changedTouches[i];
-        x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
-        if(x > 4 * unitWidth) {
-          Game.keys['fire'] = (e.type == 'touchstart');
-        }
-      }
-    }
-  };
+		if(e.type == 'touchstart' || e.type == 'touchend') {
+			for(i=0;i<e.changedTouches.length;i++) {
+				touch = e.changedTouches[i];
+				x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
+				if(x > 4 * unitWidth) {
+					Game.keys['fire'] = (e.type == 'touchstart');
+				}
+			}
+		}
+	};
 
-  Game.canvas.addEventListener('touchstart',this.trackTouch,true);
-  Game.canvas.addEventListener('touchmove',this.trackTouch,true);
-  Game.canvas.addEventListener('touchend',this.trackTouch,true);
+	Game.canvas.addEventListener('touchstart',this.trackTouch,true);
+	Game.canvas.addEventListener('touchmove',this.trackTouch,true);
+	Game.canvas.addEventListener('touchend',this.trackTouch,true);
 
-  Game.playerOffset = unitWidth + 20;
+	Game.playerOffset = unitWidth + 20;
 };
 
 
