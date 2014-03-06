@@ -22,8 +22,10 @@ var Game = new function() {
 
 		this.setupInput();
 
-		this.setBoard(2,new TouchControls());
-
+		var hasTouch = 'ontouchstart' in document.documentElement;
+		if(hasTouch){
+			this.setBoard(2,new TouchControls());
+		}
 		this.loop(); 
 
 		SpriteSheet.load(sprite_data,callback);
@@ -68,7 +70,6 @@ var Game = new function() {
 
 	return this;
 };
-
 
 var SpriteSheet = new function() {
 	this.map = { }; 
@@ -263,72 +264,46 @@ var Level = function() {
 
 Level.prototype.step = function(dt) {
 
-	// Update the current time offset
+	// Update cars spawn behavior
 	this.elapsedTime += dt;
 
 	if(this.elapsedTime > this.respawnTime){    
 		this.elapsedTime = 0;
 		this.respawnTime = 1 + Math.random();
 		if(Math.random() < 0.95){
-			if(Math.random() < 0.85){
-				this.board.add(new Car('car1', -110, Game.carsRow1));
+			if(Math.random() < 0.84){
+				this.board.add(new Car('car1', -109 - Math.random()*10, Game.carsRow1));
+			}
+			if(Math.random() < 0.88){
+				this.board.add(new Car(Math.random() < 0.5 ? 'car2' : 'car5', 149 + Math.random()*10, Game.carsRow2));
+			}
+			if(Math.random() < 0.46){
+				this.board.add(new Car('car3', -82 - Math.random()*10, Game.carsRow3));
 			}
 			if(Math.random() < 0.85){
-				this.board.add(new Car('car2', 155, Game.carsRow2));
-			}
-			if(Math.random() < 0.45){
-				this.board.add(new Car('car3', -90, Game.carsRow3));
-			}
-			if(Math.random() < 0.85){
-				this.board.add(new Car('car4', 140, Game.carsRow4));
+				this.board.add(new Car('car4', 133 + Math.random()*10, Game.carsRow4));
 			}			
 		}
 	}
 	
-	// Update the current time offset
+	// Update trunks spawn behavior
 	this.elapsedTrunkTime += dt;
 
 	if(this.elapsedTrunkTime > this.respawnTrunkTime){    
 		this.elapsedTrunkTime = 0;
 		this.respawnTrunkTime = 2 + Math.random();
 		if(Math.random() < 0.95){
-			if(Math.random() < 0.85){
-				this.board.add(new Trunk(100, Game.trunksRow1));
+			if(Math.random() < 0.80){
+				this.board.add(new Trunk(92 + Math.random()*8, Game.trunksRow1));
 			}
-			if(Math.random() < 0.85){
-				this.board.add(new Trunk(90, Game.trunksRow2));
+			if(Math.random() < 0.87){
+				this.board.add(new Trunk(85 + Math.random()*5, Game.trunksRow2));
 			}
-			if(Math.random() < 0.85){
-				this.board.add(new Trunk(120, Game.trunksRow3));
+			if(Math.random() < 0.83){
+				this.board.add(new Trunk(110 + Math.random()*10, Game.trunksRow3));
 			}			
 		}
 	}
-	//   Start, End,  Gap, Type,   Override
-	// [ 0,     4000, 500, 'step', { x: 100 } ]
-	/*while((curShip = this.levelData[idx]) && (curShip[0] < this.t + 2000)) {
-    // Check if we've passed the end time 
-    if(this.t > curShip[1]) {
-      remove.push(curShip);
-    } else if(curShip[0] < this.t) {
-      // Get the enemy definition blueprint
-      var enemy = enemies[curShip[3]],
-      override = curShip[4];
-
-      // Add a new enemy with the blueprint and override
-      //this.board.add(new Enemy(enemy,override));
-
-      // Increment the start time by the gap
-      curShip[0] += curShip[2];
-    }
-    idx++;
-  }*/
-
-	// Remove any objects from the levelData that have passed
-
-	// If there are no more enemies on the board or in 
-	// levelData, this level is done
-
-
 };
 
 Level.prototype.draw = function(ctx) { };
