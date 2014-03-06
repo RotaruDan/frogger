@@ -22,7 +22,7 @@ var Game = new function() {
 
 		this.setupInput();
 
-		this.setBoard(4,new TouchControls());
+		this.setBoard(2,new TouchControls());
 
 		this.loop(); 
 
