@@ -28,28 +28,28 @@ var OBJECT_FROG = 1,
 var startGame = function() {
 	Game.setBoard(0,new Background());
 	Game.setBoard(1,new TitleScreen("Frogger", 
-									"Press space to start playing",
+									"Press UP to start playing",
 									playGame));
 };
 
 var playGame = function() {
 	console.log("playGame");
 	var board = new GameBoard();
-	board.add(new Level());
-	board.add(new Frog());
-	board.add(new Water());
+	board.add(new Level(), true);
+	board.add(new Frog(), true);
+	board.add(new Water(), true);
 	Game.setBoard(1,board);
 };
 
 var winGame = function() {
 	Game.setBoard(1,new TitleScreen("You win!", 
-									"Press space to play again",
+									"Press UP to play again",
 									playGame));
 };
 
 var loseGame = function() {
 	Game.setBoard(1,new TitleScreen("You lose!", 
-									"Press space to play again",
+									"Press UP to play again",
 									playGame));
 };
 
@@ -190,7 +190,7 @@ var Frog = function() {
 	}
 
 	this.startDying = function(){
-		this.board.add(new DeadFrog(this.x, this.y));
+		this.board.add(new DeadFrog(this.x, this.y), false);
 		this.board.remove(this);		
 	}
 };

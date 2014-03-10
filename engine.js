@@ -19,20 +19,59 @@ var Game = new function() {
 
 		this.canvasMultiplier = 1;
 		this.playerOffset = 10;
-
+		this.setupMobile();
 		this.setupInput();
 
-		var hasTouch = 'ontouchstart' in document.documentElement;
-		if(hasTouch){
+		if(this.mobile){
 			this.setBoard(2,new TouchControls());
 		}
+		this.setBoard(2,new TouchControls());
 		this.loop(); 
 
 		SpriteSheet.load(sprite_data,callback);
 	};
 
+	this.setupMobile = function() {
+		var container = document.getElementById("container"),
+			hasTouch =  !!('ontouchstart' in window),
+			w = window.innerWidth, h = window.innerHeight;
+
+		if(hasTouch) { mobile = true; }
+
+		if(screen.width > 1100) { return false; }
+
+		if(w > h) {
+			alert("Please rotate the device and then click OK");
+			w = window.innerWidth; h = window.innerHeight;
+		}
+
+		container.style.height = h*2 + "px";
+		window.scrollTo(0,1);
+
+		h = window.innerHeight;
+		container.style.height = h + "px";
+
+		if(h >= this.canvas.height * 1.75 || w >= this.canvas.height * 1.75) {
+			this.canvasMultiplier = 2;
+			this.canvas.width = w / 2;
+			this.canvas.height = h / 2;
+			this.canvas.style.width = w + "px";
+			this.canvas.style.height = h + "px";
+		} else {
+			this.canvas.width = w;
+			this.canvas.height = h;
+		}
+
+		this.canvas.style.position='absolute';
+		this.canvas.style.left="0px";
+		this.canvas.style.top="0px";
+
+		this.mobile = true;
+
+	};
+
 	// Handle Input
-	var KEY_CODES = { 37:'left', 38 :'up', 39:'right', 40:'down', 32 :'space' };
+	var KEY_CODES = { 37:'left', 38 :'up', 39:'right', 40:'down' };
 	this.keys = {};
 
 	this.setupInput = function() {
@@ -69,6 +108,46 @@ var Game = new function() {
 	this.setBoard = function(num,board) { boards[num] = board; };
 
 	return this;
+};
+
+
+this.setupMobile = function() {
+	var container = document.getElementById("container"),
+		hasTouch =  !!('ontouchstart' in window),
+		w = window.innerWidth, h = window.innerHeight;
+
+	if(hasTouch) { mobile = true; }
+
+	if(screen.width > 1100) { return false; }
+
+	if(w > h) {
+		alert("Please rotate the device and then click OK");
+		w = window.innerWidth; h = window.innerHeight;
+	}
+
+	container.style.height = h*2 + "px";
+	window.scrollTo(0,1);
+
+	h = window.innerHeight;
+	container.style.height = h + "px";
+
+	if(h >= this.canvas.height * 1.75 || w >= this.canvas.height * 1.75) {
+		this.canvasMultiplier = 2;
+		this.canvas.width = w / 2;
+		this.canvas.height = h / 2;
+		this.canvas.style.width = w + "px";
+		this.canvas.style.height = h + "px";
+	} else {
+		this.canvas.width = w;
+		this.canvas.height = h;
+	}
+
+	this.canvas.style.position='absolute';
+	this.canvas.style.left="0px";
+	this.canvas.style.top="0px";
+
+	this.mobile = true;
+
 };
 
 var SpriteSheet = new function() {
@@ -118,9 +197,10 @@ var SpriteSheet = new function() {
 
 var TitleScreen = function TitleScreen(title,subtitle,callback) {
 	var up = false;
+	var goingDown = false;
 	this.step = function(dt) {
-		if(!Game.keys['space']) up = true;
-		if(up && Game.keys['space'] && callback) callback();
+		if(!Game.keys['up']) up = true;
+		if(up && Game.keys['up'] && callback) callback();
 	};
 
 	this.draw = function(ctx) {
@@ -145,9 +225,12 @@ var GameBoard = function() {
 	this.cnt = {};
 
 	// Add a new object to the object list
-	this.add = function(obj) { 
+	this.add = function(obj, top) { 
 		obj.board=this; 
-		this.objects.unshift(obj); 
+		if(top)
+			this.objects.unshift(obj); 
+		else 			
+			this.objects.push(obj); 
 		this.cnt[obj.type] = (this.cnt[obj.type] || 0) + 1;
 		return obj; 
 	};
@@ -272,20 +355,20 @@ Level.prototype.step = function(dt) {
 		this.respawnTime = 1 + Math.random();
 		if(Math.random() < 0.95){
 			if(Math.random() < 0.84){
-				this.board.add(new Car('car1', -109 - Math.random()*10, Game.carsRow1));
+				this.board.add(new Car('car1', -109 - Math.random()*10, Game.carsRow1), true);
 			}
 			if(Math.random() < 0.88){
-				this.board.add(new Car(Math.random() < 0.5 ? 'car2' : 'car5', 149 + Math.random()*10, Game.carsRow2));
+				this.board.add(new Car(Math.random() < 0.5 ? 'car2' : 'car5', 149 + Math.random()*10, Game.carsRow2), true);
 			}
 			if(Math.random() < 0.46){
-				this.board.add(new Car('car3', -82 - Math.random()*10, Game.carsRow3));
+				this.board.add(new Car('car3', -82 - Math.random()*10, Game.carsRow3), true);
 			}
 			if(Math.random() < 0.85){
-				this.board.add(new Car('car4', 133 + Math.random()*10, Game.carsRow4));
+				this.board.add(new Car('car4', 133 + Math.random()*10, Game.carsRow4), true);
 			}			
 		}
 	}
-	
+
 	// Update trunks spawn behavior
 	this.elapsedTrunkTime += dt;
 
@@ -294,13 +377,13 @@ Level.prototype.step = function(dt) {
 		this.respawnTrunkTime = 2 + Math.random();
 		if(Math.random() < 0.95){
 			if(Math.random() < 0.80){
-				this.board.add(new Trunk(92 + Math.random()*8, Game.trunksRow1));
+				this.board.add(new Trunk(92 + Math.random()*8, Game.trunksRow1), true);
 			}
 			if(Math.random() < 0.87){
-				this.board.add(new Trunk(85 + Math.random()*5, Game.trunksRow2));
+				this.board.add(new Trunk(85 + Math.random()*5, Game.trunksRow2), true);
 			}
 			if(Math.random() < 0.83){
-				this.board.add(new Trunk(110 + Math.random()*10, Game.trunksRow3));
+				this.board.add(new Trunk(110 + Math.random()*10, Game.trunksRow3), true);
 			}			
 		}
 	}
@@ -345,36 +428,39 @@ var TouchControls = function() {
 	this.step = function(dt) { };
 
 	this.trackTouch = function(e) {
-		var touch, x;
+		var touch, x, y;
 
 		e.preventDefault();
 		Game.keys['left'] = false;
 		Game.keys['right'] = false;
-		for(var i=0;i<e.targetTouches.length;i++) {
-			touch = e.targetTouches[i];
-			x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
-			if(x < unitWidth) {
-				Game.keys['left'] = true;
-			} 
-			if(x > unitWidth && x < 2*unitWidth) {
-				Game.keys['right'] = true;
-			} 
-		}
+		Game.keys['up'] = false;
+		Game.keys['down'] = false;
 
-		if(e.type == 'touchstart' || e.type == 'touchend') {
+		if(e.type == 'touchstart' || e.type == 'touchmove') {
 			for(i=0;i<e.changedTouches.length;i++) {
 				touch = e.changedTouches[i];
-				x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
-				if(x > 4 * unitWidth) {
-					Game.keys['fire'] = (e.type == 'touchstart');
+				x = touch.clientX / Game.canvasMultiplier;
+				y = touch.clientY / Game.canvasMultiplier;
+				if(x < gutterWidth + unitWidth) {
+					Game.keys['left'] = true;
+				} else if(x > (gutterWidth  + unitWidth) * 2 && x < (gutterWidth + unitWidth) * 3){
+					Game.keys['right'] = true;				
+				} else if(x > gutterWidth + unitWidth && x < (gutterWidth  + unitWidth) * 2){
+					if(y > Game.height - unitWidth){
+						Game.keys['down'] = true;					
+					} else if(y > Game.height - unitWidth * 2){						
+						Game.keys['up'] = true;				
+					}
 				}
 			}
 		}
+
 	};
 
-	Game.canvas.addEventListener('touchstart',this.trackTouch,true);
-	Game.canvas.addEventListener('touchmove',this.trackTouch,true);
-	Game.canvas.addEventListener('touchend',this.trackTouch,true);
+	Game.canvas.addEventListener('touchstart',this.trackTouch,false);
+	Game.canvas.addEventListener('touchmove',this.trackTouch,false);
+	Game.canvas.addEventListener('touchend',this.trackTouch,false);
+	Game.canvas.addEventListener('touchcancel',this.trackTouch,false);
 
 	Game.playerOffset = unitWidth + 20;
 };
