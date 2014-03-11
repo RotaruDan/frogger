@@ -25,7 +25,6 @@ var Game = new function() {
 		if(this.mobile){
 			this.setBoard(2,new TouchControls());
 		}
-		this.setBoard(2,new TouchControls());
 		this.loop(); 
 
 		SpriteSheet.load(sprite_data,callback);
@@ -338,14 +337,14 @@ Sprite.prototype.hit = function(damage) {
 };
 
 
-var Level = function() {
+var Spawner = function() {
 	this.elapsedTime = 0;
 	this.elapsedTrunkTime = 0;
 	this.respawnTime = 0;
 	this.respawnTrunkTime = 0;
 };
 
-Level.prototype.step = function(dt) {
+Spawner.prototype.step = function(dt) {
 
 	// Update cars spawn behavior
 	this.elapsedTime += dt;
@@ -389,7 +388,7 @@ Level.prototype.step = function(dt) {
 	}
 };
 
-Level.prototype.draw = function(ctx) { };
+Spawner.prototype.draw = function(ctx) { };
 
 
 var TouchControls = function() {

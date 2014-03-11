@@ -35,7 +35,7 @@ var startGame = function() {
 var playGame = function() {
 	console.log("playGame");
 	var board = new GameBoard();
-	board.add(new Level(), true);
+	board.add(new Spawner(), true);
 	board.add(new Frog(), true);
 	board.add(new Water(), true);
 	Game.setBoard(1,board);
