@@ -338,20 +338,20 @@ Sprite.prototype.hit = function(damage) {
 
 
 var Spawner = function() {
-	this.elapsedTime = 0;
+	this.elapsedCarTime = 0;
 	this.elapsedTrunkTime = 0;
-	this.respawnTime = 0;
+	this.respawnCarTime = 0;
 	this.respawnTrunkTime = 0;
 };
 
 Spawner.prototype.step = function(dt) {
 
 	// Update cars spawn behavior
-	this.elapsedTime += dt;
+	this.elapsedCarTime += dt;
 
-	if(this.elapsedTime > this.respawnTime){    
-		this.elapsedTime = 0;
-		this.respawnTime = 1 + Math.random();
+	if(this.elapsedCarTime > this.respawnCarTime){    
+		this.elapsedCarTime = 0;
+		this.respawnCarTime = 1 + Math.random();
 		if(Math.random() < 0.95){
 			if(Math.random() < 0.84){
 				this.board.add(new Car('car1', -109 - Math.random()*10, Game.carsRow1), true);
@@ -388,7 +388,9 @@ Spawner.prototype.step = function(dt) {
 	}
 };
 
-Spawner.prototype.draw = function(ctx) { };
+Spawner.prototype.draw = function(ctx) {
+	ctx.fillText(CURRENT_FROG_LIVES, 26, 20);
+};
 
 
 var TouchControls = function() {

@@ -24,6 +24,9 @@ var OBJECT_FROG = 1,
 	OBJECT_CAR = 3,
 	OBJECT_WATER = 4,
 	OBJECT_OTHER = -1;
+var MAX_FROG_LIVES = FROG_LIVES = 3,
+	CURRENT_FROG_LIVES = "Lives: " + FROG_LIVES;
+var TIME_TO_WIN = 10;
 
 var startGame = function() {
 	Game.setBoard(0,new Background());
@@ -76,7 +79,22 @@ var Frog = function() {
 	this.frame = this.frames - 1;
 	this.additionalXvelocity = 0;
 
+	this.elapsedTime = 0;
+	this.remainingSecs = TIME_TO_WIN;
+	this.showingTimeText = "Remaining time: " + this.remainingSecs;
+
 	this.step = function(dt) {
+
+		this.elapsedTime += dt;
+		if(this.elapsedTime >= 1){
+			this.elapsedTime = 0;	
+			--this.remainingSecs;
+			this.showingTimeText = "Remaining time: " + this.remainingSecs;
+			if(this.remainingSecs == 0){
+				this.startDying();
+			}
+		}
+
 		if(!this.animating){
 			if(Game.keys['up']) { 
 				this.steppingTime = 0; 
@@ -186,7 +204,8 @@ var Frog = function() {
 			SpriteSheet.draw(ctx,this.sprite,this.x,this.y,this.frame);
 		} else {
 			SpriteSheet.drawRotated(ctx,this.sprite,this.x,this.y,this.frame, this.angle);
-		}
+		}		
+		ctx.fillText(this.showingTimeText, Game.width - 80, 20);
 	}
 
 	this.startDying = function(){
@@ -220,7 +239,15 @@ var DeadFrog = function(posX, posY) {
 			this.frame = (this.frame+1);
 			this.elapsedAnimatingTime = 0;
 			if(this.frame >= this.frames){
-				loseGame();
+				--FROG_LIVES;
+				if(FROG_LIVES == 0) {
+					loseGame();
+					FROG_LIVES = MAX_FROG_LIVES;
+				} else {
+					this.board.add(new Frog(), true);
+				}
+				CURRENT_FROG_LIVES = "Lives: " + FROG_LIVES;
+				this.board.remove(this);
 			}
 		}
 	};
@@ -236,11 +263,7 @@ var Trunk = function(velX, posY) {
 
 	this.step = function(dt) {
 		this.x += this.vx * dt;
-
-		/*var collision = this.board.collide(this,OBJECT_FROG);
-		if(collision) {
-			collision.hit(this);
-		} else */if(this.x > Game.width){
+		if(this.x > Game.width){
 			this.board.remove(this);
 		}
 	};
