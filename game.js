@@ -1,3 +1,4 @@
+//Dan Cristian, Rotaru
 
 window.addEventListener("load", function() {
 	Game.initialize("game",sprites,startGame);

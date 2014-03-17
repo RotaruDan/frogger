@@ -1,3 +1,5 @@
+//Dan Cristian, Rotaru
+
 var Game = new function() {                                                                  
 	var boards = [];
 
